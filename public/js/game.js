@@ -1395,11 +1395,26 @@ function create() {
     this.physics.add.overlap(player, goal, () => {
         if (!levelComplete) {
             levelComplete = true;
-            this.add.text(600, 300, 'LEVEL COMPLETE!', {
-                fontSize: '48px',
-                fill: '#00FF00'
-            }).setOrigin(0.5);
-            console.log('Level Complete!');
+            console.log('Level Complete! Bosses defeated:', bossesDefeated);
+            
+            // Check if player has defeated at least 1 boss
+            if (bossesDefeated >= 1) {
+                showLevelCompleteOverlay();
+            } else {
+                // Show message that they need to defeat a boss first
+                const needBossText = this.add.text(600, 300, 'DEFEAT A BOSS FIRST!', {
+                    fontSize: '32px',
+                    fill: '#FF0000',
+                    stroke: '#000000',
+                    strokeThickness: 3
+                }).setOrigin(0.5);
+                
+                // Remove the text after 3 seconds
+                this.time.delayedCall(3000, () => {
+                    needBossText.destroy();
+                    levelComplete = false; // Allow trying again
+                });
+            }
         }
     });
     
@@ -1966,18 +1981,8 @@ function updateBoss() {
         boss.setTint(0xFF4500);
     }
     
-    // Remove boss if too far behind
-    if (boss.x < player.x - 500) {
-        if (boss.healthBar) {
-            boss.healthBar.destroy();
-        }
-        if (boss.nameLabel) {
-            boss.nameLabel.destroy();
-        }
-        boss.destroy();
-        boss = null;
-        bossSpawned = false;
-    }
+    // Don't remove boss when it goes off screen - let it keep its health
+    // The boss will naturally follow the player and won't be destroyed
 }
 
 function updateEnemies() {
@@ -2344,14 +2349,36 @@ function openMenu() {
     menuOpen = true;
     console.log('Opening Weapon Shop...');
     
-    // Simple approach: just create the menu elements
+    // Create dark backdrop that covers the entire screen
+    const backdrop = gameScene.add.rectangle(600, 300, 1200, 600, 0x000000, 0.8);
+    backdrop.setDepth(1000);
+    backdrop.setInteractive();
+    
+    // Close modal when clicking backdrop
+    backdrop.on('pointerdown', () => {
+        console.log('Backdrop clicked - closing modal');
+        closeMenu();
+    });
+    
+    // Create modal content container
+    const modalContent = gameScene.add.rectangle(600, 300, 800, 500, 0x1a1a1a, 0.95);
+    modalContent.setDepth(1001);
+    modalContent.setStrokeStyle(3, 0xFFD700);
+    modalContent.setInteractive();
+    
+    // Prevent backdrop click when clicking modal content
+    modalContent.on('pointerdown', (pointer) => {
+        console.log('Modal content clicked - not closing');
+        pointer.stopPropagation();
+    });
+    
     // Menu title
     const title = gameScene.add.text(600, 100, 'WEAPON SHOP', {
         fontSize: '32px',
         fill: '#FFD700',
         stroke: '#000000',
         strokeThickness: 4
-    }).setOrigin(0.5).setDepth(1000);
+    }).setOrigin(0.5).setDepth(1002);
     
     // Currency display
     const currencyText = gameScene.add.text(600, 140, `Coins: ${currency}`, {
@@ -2359,7 +2386,7 @@ function openMenu() {
         fill: '#FFD700',
         stroke: '#000000',
         strokeThickness: 2
-    }).setOrigin(0.5).setDepth(1000);
+    }).setOrigin(0.5).setDepth(1002);
     
     // Create weapon shop items
     createWeaponShopItems();
@@ -2370,22 +2397,22 @@ function openMenu() {
         fill: '#FFFFFF',
         stroke: '#000000',
         strokeThickness: 2
-    }).setOrigin(0.5).setDepth(1000);
+    }).setOrigin(0.5).setDepth(1002);
     
-    const closeText = gameScene.add.text(600, 480, 'Press M or ESC to close', {
+    const closeText = gameScene.add.text(600, 480, 'Press M, ESC, or click outside to close', {
         fontSize: '14px',
         fill: '#CCCCCC',
         stroke: '#000000',
         strokeThickness: 1
-    }).setOrigin(0.5).setDepth(1000);
+    }).setOrigin(0.5).setDepth(1002);
     
-    // SIMPLE CLOSE BUTTON
+    // CLOSE BUTTON
     const closeButton = gameScene.add.text(600, 520, 'CLOSE MENU', {
         fontSize: '20px',
         fill: '#FF0000',
         stroke: '#000000',
         strokeThickness: 3
-    }).setOrigin(0.5).setDepth(1000);
+    }).setOrigin(0.5).setDepth(1002);
     closeButton.setInteractive();
     closeButton.on('pointerdown', () => {
         console.log('CLOSE BUTTON CLICKED');
@@ -2415,6 +2442,95 @@ function closeMenu() {
     });
     
     console.log('closeMenu() completed - menuOpen is now:', menuOpen);
+}
+
+function showLevelCompleteOverlay() {
+    console.log('Showing level complete overlay!');
+    
+    // Create dark backdrop
+    const backdrop = gameScene.add.rectangle(600, 300, 1200, 600, 0x000000, 0.9);
+    backdrop.setDepth(2000);
+    
+    // Main congratulations text
+    const congratsText = gameScene.add.text(600, 200, 'CONGRATULATIONS!', {
+        fontSize: '48px',
+        fill: '#FFD700',
+        stroke: '#000000',
+        strokeThickness: 4
+    }).setOrigin(0.5).setDepth(2001);
+    
+    // Level complete text
+    const levelCompleteText = gameScene.add.text(600, 250, 'LEVEL COMPLETE!', {
+        fontSize: '32px',
+        fill: '#00FF00',
+        stroke: '#000000',
+        strokeThickness: 3
+    }).setOrigin(0.5).setDepth(2001);
+    
+    // Stats display
+    const statsText = gameScene.add.text(600, 320, `Bosses Defeated: ${bossesDefeated}`, {
+        fontSize: '24px',
+        fill: '#FFFFFF',
+        stroke: '#000000',
+        strokeThickness: 2
+    }).setOrigin(0.5).setDepth(2001);
+    
+    const currencyText = gameScene.add.text(600, 350, `Total Coins Earned: ${currency}`, {
+        fontSize: '20px',
+        fill: '#FFD700',
+        stroke: '#000000',
+        strokeThickness: 2
+    }).setOrigin(0.5).setDepth(2001);
+    
+    // Achievement text
+    const achievementText = gameScene.add.text(600, 400, 'You have proven yourself a true warrior!', {
+        fontSize: '18px',
+        fill: '#CCCCCC',
+        stroke: '#000000',
+        strokeThickness: 1
+    }).setOrigin(0.5).setDepth(2001);
+    
+    // Continue button
+    const continueButton = gameScene.add.text(600, 480, 'PRESS ANY KEY TO CONTINUE', {
+        fontSize: '20px',
+        fill: '#00FF00',
+        stroke: '#000000',
+        strokeThickness: 3
+    }).setOrigin(0.5).setDepth(2001);
+    
+    // Add blinking effect to continue button
+    gameScene.tweens.add({
+        targets: continueButton,
+        alpha: 0.3,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1
+    });
+    
+    // Add keyboard listener for any key
+    const keyHandler = (event) => {
+        console.log('Key pressed to continue:', event.key);
+        // Remove the overlay
+        backdrop.destroy();
+        congratsText.destroy();
+        levelCompleteText.destroy();
+        statsText.destroy();
+        currencyText.destroy();
+        achievementText.destroy();
+        continueButton.destroy();
+        
+        // Remove the key handler
+        document.removeEventListener('keydown', keyHandler);
+        
+        // Reset level completion
+        levelComplete = false;
+        
+        // Optionally reset the game or continue
+        console.log('Level complete overlay closed');
+    };
+    
+    // Add the key listener
+    document.addEventListener('keydown', keyHandler);
 }
 
 function createWeaponShopItems() {
