@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Game</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; color: white; font-family: monospace; }
+        #game-container { border: 2px solid white; margin: 20px auto; background: #333; }
+        #debug { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div id="debug">
+        <h3>Debug Console</h3>
+        <div id="status">Loading...</div>
+    </div>
+    <div id="game-container"></div>
+    
+    <script>
+        const debug = document.getElementById('status');
+        function log(msg) {
+            debug.innerHTML += '<br>' + msg;
+            console.log(msg);
+        }
+        
+        log('Starting debug...');
+    </script>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

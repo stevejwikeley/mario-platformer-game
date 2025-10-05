@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Game</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #333; color: white; font-family: monospace; }
+        #game-container { border: 2px solid white; margin: 20px auto; }
+        #status { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Mario Platformer Test</h1>
+    <div id="status">Loading...</div>
+    <div id="game-container"></div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+    
+    <script>
+        // Test script
+        setTimeout(() => {
+            const status = document.getElementById('status');
+            status.innerHTML = 'Game loaded! Check console for details.';
+            
+            // Check if game elements exist
+            const gameContainer = document.getElementById('game-container');
+            if (gameContainer.children.length > 0) {
+                status.innerHTML += '<br>✅ Game canvas created';
+            } else {
+                status.innerHTML += '<br>❌ No game canvas found';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
