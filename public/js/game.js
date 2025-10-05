@@ -1405,7 +1405,7 @@ function create() {
     
     // Setup controls
     cursors = this.input.keyboard.createCursorKeys();
-    keys = this.input.keyboard.addKeys('W,A,S,D,SPACE,X,C,M');
+    keys = this.input.keyboard.addKeys('W,A,S,D,SPACE,X,C,M,ESC');
     
     // CAMERA FOLLOWING - This is the key fix!
     this.cameras.main.setBounds(0, 0, 3000, 600); // Set world bounds
@@ -1705,6 +1705,11 @@ function update() {
     // Menu controls - prevent opening during boss defeat
     if (Phaser.Input.Keyboard.JustDown(keys.M) && !bossDefeatInProgress) {
         toggleMenu();
+    }
+    
+    // Close menu with ESC key
+    if (Phaser.Input.Keyboard.JustDown(keys.ESC) && menuOpen) {
+        closeMenu();
     }
     
     // ENEMY SPAWNING SYSTEM - dynamic frequency based on boss defeats
@@ -2339,20 +2344,14 @@ function openMenu() {
     menuOpen = true;
     console.log('Opening Weapon Shop...');
     
-    // Don't pause the game - just overlay the menu
-    // gameScene.scene.pause(); // Removed to prevent pausing issues
-    
-    // Create menu overlay
-    const menuOverlay = gameScene.add.rectangle(600, 300, 800, 500, 0x000000, 0.8);
-    menuOverlay.setDepth(1000);
-    
+    // Simple approach: just create the menu elements
     // Menu title
     const title = gameScene.add.text(600, 100, 'WEAPON SHOP', {
         fontSize: '32px',
         fill: '#FFD700',
         stroke: '#000000',
         strokeThickness: 4
-    }).setOrigin(0.5).setDepth(1001);
+    }).setOrigin(0.5).setDepth(1000);
     
     // Currency display
     const currencyText = gameScene.add.text(600, 140, `Coins: ${currency}`, {
@@ -2360,7 +2359,7 @@ function openMenu() {
         fill: '#FFD700',
         stroke: '#000000',
         strokeThickness: 2
-    }).setOrigin(0.5).setDepth(1001);
+    }).setOrigin(0.5).setDepth(1000);
     
     // Create weapon shop items
     createWeaponShopItems();
@@ -2371,29 +2370,51 @@ function openMenu() {
         fill: '#FFFFFF',
         stroke: '#000000',
         strokeThickness: 2
-    }).setOrigin(0.5).setDepth(1001);
+    }).setOrigin(0.5).setDepth(1000);
     
-    const closeText = gameScene.add.text(600, 480, 'Press M to close', {
+    const closeText = gameScene.add.text(600, 480, 'Press M or ESC to close', {
         fontSize: '14px',
         fill: '#CCCCCC',
         stroke: '#000000',
         strokeThickness: 1
-    }).setOrigin(0.5).setDepth(1001);
+    }).setOrigin(0.5).setDepth(1000);
+    
+    // SIMPLE CLOSE BUTTON
+    const closeButton = gameScene.add.text(600, 520, 'CLOSE MENU', {
+        fontSize: '20px',
+        fill: '#FF0000',
+        stroke: '#000000',
+        strokeThickness: 3
+    }).setOrigin(0.5).setDepth(1000);
+    closeButton.setInteractive();
+    closeButton.on('pointerdown', () => {
+        console.log('CLOSE BUTTON CLICKED');
+        closeMenu();
+    });
 }
 
 function closeMenu() {
+    console.log('closeMenu() called');
     menuOpen = false;
     console.log('Closing Weapon Shop...');
     
-    // No need to resume since we don't pause
-    // gameScene.scene.resume(); // Removed since we don't pause
-    
-    // Remove menu elements
+    // Remove all elements with depth >= 1000
+    const elementsToDestroy = [];
     gameScene.children.list.forEach(child => {
         if (child.depth >= 1000) {
-            child.destroy();
+            elementsToDestroy.push(child);
         }
     });
+    
+    console.log('Found', elementsToDestroy.length, 'elements to destroy');
+    
+    // Destroy all menu elements
+    elementsToDestroy.forEach(element => {
+        console.log('Destroying element:', element.text || 'non-text element');
+        element.destroy();
+    });
+    
+    console.log('closeMenu() completed - menuOpen is now:', menuOpen);
 }
 
 function createWeaponShopItems() {
@@ -2412,7 +2433,7 @@ function createWeaponShopItems() {
             fill: isOwned ? '#FFFFFF' : '#666666',
             stroke: '#000000',
             strokeThickness: 1
-        }).setDepth(1001);
+        }).setDepth(1003);
         
         // Purchase/Upgrade buttons
         if (!isOwned) {
@@ -2422,7 +2443,7 @@ function createWeaponShopItems() {
                 fill: currency >= purchaseCost ? '#00FF00' : '#FF0000',
                 stroke: '#000000',
                 strokeThickness: 1
-            }).setOrigin(0.5).setDepth(1001);
+            }).setOrigin(0.5).setDepth(1003);
             
             purchaseButton.setInteractive();
             purchaseButton.on('pointerdown', () => {
@@ -2449,7 +2470,7 @@ function createWeaponShopItems() {
                         fill: '#FF0000',
                         stroke: '#000000',
                         strokeThickness: 1
-                    }).setOrigin(0.5).setDepth(1002);
+                    }).setOrigin(0.5).setDepth(1004);
                     
                     gameScene.tweens.add({
                         targets: noMoneyText,
@@ -2470,21 +2491,21 @@ function createWeaponShopItems() {
                 fill: currency >= upgradeDamageCost ? '#00FF00' : '#FF0000',
                 stroke: '#000000',
                 strokeThickness: 1
-            }).setDepth(1001);
+            }).setDepth(1003);
             
             const rangeButton = gameScene.add.text(650, y, `Rng+ (${upgradeRangeCost})`, {
                 fontSize: '12px',
                 fill: currency >= upgradeRangeCost ? '#00FF00' : '#FF0000',
                 stroke: '#000000',
                 strokeThickness: 1
-            }).setDepth(1001);
+            }).setDepth(1003);
             
             const cooldownButton = gameScene.add.text(750, y, `Spd+ (${upgradeCooldownCost})`, {
                 fontSize: '12px',
                 fill: currency >= upgradeCooldownCost ? '#00FF00' : '#FF0000',
                 stroke: '#000000',
                 strokeThickness: 1
-            }).setDepth(1001);
+            }).setDepth(1003);
             
             // Add button interactions
             damageButton.setInteractive();
@@ -2521,7 +2542,7 @@ function createWeaponShopItems() {
 }
 
 function getWeaponUnlockCost(weaponIndex) {
-    const baseCosts = [0, 0, 0, 0, 0, 50, 75, 100, 125]; // Cost to unlock each weapon
+    const baseCosts = [0, 0, 0, 0, 0, 200, 75, 100, 125]; // Cost to unlock each weapon
     return baseCosts[weaponIndex] || 50;
 }
 
