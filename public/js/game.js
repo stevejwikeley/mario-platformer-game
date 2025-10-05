@@ -2127,12 +2127,15 @@ function attack() {
             // Boss hit visual feedback
             boss.setTint(0xFF0000);
             gameScene.time.delayedCall(150, () => {
-                if (boss.health <= boss.maxHealth * 0.3) {
-                    boss.setTint(0xFF0000);
-                } else if (boss.health <= boss.maxHealth * 0.6) {
-                    boss.setTint(0xFF4500);
-                } else {
-                    boss.setTint(0x8B0000);
+                // Check if boss still exists before accessing properties
+                if (boss && boss.active) {
+                    if (boss.health <= boss.maxHealth * 0.3) {
+                        boss.setTint(0xFF0000);
+                    } else if (boss.health <= boss.maxHealth * 0.6) {
+                        boss.setTint(0xFF4500);
+                    } else {
+                        boss.setTint(0x8B0000);
+                    }
                 }
             });
             
